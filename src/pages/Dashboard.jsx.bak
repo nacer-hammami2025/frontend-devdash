@@ -1,0 +1,522 @@
+import React, { useEffect, useState } from 'react';
+import API from '../api';
+import { Link } from 'react-router-dom';
+import { 
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  BarElement
+} from 'chart.js';
+import { Line, Doughnut, Bar } from 'react-chartjs-2';
+import { exportToPDF, exportToCSV } from '../utils/export';
+import { Menu } from '@headlessui/react';
+
+// Enregistrer les composants Chart.js
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+export default function Dashboard() {
+  const [stats, setStats] = useState({
+    projects: {
+      total: 0,
+      active: 0,
+      completed: 0,
+      onHold: 0,
+      list: []
+    },
+    tasks: {
+      total: 0,
+      todo: 0,
+      inProgress: 0,
+      inReview: 0,
+      done: 0,
+      list: [],
+      byPriority: {
+        low: 0,
+        medium: 0,
+        high: 0
+      }
+    },
+    activities: [],
+    users: [],
+    timeline: {
+      labels: [],
+      datasets: []
+    }
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fonction pour charger les données du tableau de bord
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [
+        projectsRes,
+        tasksRes,
+        usersRes,
+        activitiesRes,
+        projectStatsRes,
+        taskStatsRes
+      ] = await Promise.all([
+        API.get('/projects'),
+        API.get('/tasks'),
+        API.get('/users'),
+        API.get('/activities?limit=10'),
+        API.get('/projects/stats'),
+        API.get('/tasks/stats')
+      ]);
+
+        console.log('Données reçues:', { projectsRes, tasksRes, usersRes, activitiesRes });
+        
+        const projects = projectsRes.data || [];
+        const tasks = tasksRes.data || [];
+        const users = usersRes.data || [];
+        const activities = activitiesRes.data || [];
+
+        setStats({
+          projects: {
+            total: projects.length,
+            active: projects.filter(p => !p.isCompleted).length,
+            completed: projects.filter(p => p.isCompleted).length,
+            list: projects.slice(0, 5)
+          },
+          tasks: {
+            total: tasks.length,
+            todo: tasks.filter(t => t.status === 'todo').length,
+            inProgress: tasks.filter(t => t.status === 'in_progress').length,
+            inReview: tasks.filter(t => t.status === 'in_review').length,
+            done: tasks.filter(t => t.status === 'done').length,
+            list: tasks.slice(0, 5)
+          },
+          activities: activities.slice(0, 10),
+          users: users
+        });
+      } catch (err) {
+        console.error('Erreur lors du chargement des données:', err);
+        setError(err.response?.data?.message || err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Rendu conditionnel pour le chargement et les erreurs
+  if (loading) {
+    return <div style={{ padding: '2rem', textAlign: 'center' }}>Chargement des données...</div>;
+  }
+
+  if (error) {
+    return <div style={{ padding: '2rem', color: 'red', textAlign: 'center' }}>Erreur: {error}</div>;
+  }
+
+  // Vérifier si les données sont disponibles
+  if (!stats.users || stats.users.length === 0) {
+    return <div style={{ padding: '2rem', textAlign: 'center' }}>Aucune donnée disponible</div>;
+  }
+
+  // Fonctions d'export
+  const handleExport = async (type, format) => {
+    try {
+      const data = type === 'projects' ? stats.projects.list : stats.tasks.list;
+      
+      if (!data || data.length === 0) {
+        alert(`Aucune donnée à exporter pour ${type}`);
+        return;
+      }
+
+      if (format === 'pdf') {
+        await exportToPDF(data, type);
+      } else {
+        await exportToCSV(data, type);
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'export:', error);
+      alert('Une erreur est survenue lors de l\'export. Veuillez réessayer.');
+    }
+  };
+
+  return (
+    <div style={{padding: 20}}>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20
+      }}>
+        <h1>DevDash — Dashboard</h1>
+        <div style={{display: 'flex', gap: '10px'}}>
+          <Menu as="div" style={{position: 'relative'}}>
+            <Menu.Button style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '8px 12px',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '6px',
+              color: '#475569',
+              cursor: 'pointer'
+            }}>
+              Exporter
+              <ChevronDownIcon style={{height: 20, width: 20}} />
+            </Menu.Button>
+            <Menu.Items style={{
+              position: 'absolute',
+              right: 0,
+              marginTop: '4px',
+              background: 'white',
+              border: '1px solid #e2e8f0',
+              borderRadius: '6px',
+              padding: '4px',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              zIndex: 50
+            }}>
+              <div style={{padding: '4px 8px', fontWeight: 500, color: '#64748b'}}>Projets</div>
+              <Menu.Item>
+                {({ active }) => (
+                  <button
+                    onClick={() => handleExport('projects', 'pdf')}
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '8px 12px',
+                      background: active ? '#f8fafc' : 'transparent',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Exporter en PDF
+                  </button>
+                )}
+              </Menu.Item>
+              <Menu.Item>
+                {({ active }) => (
+                  <button
+                    onClick={() => handleExport('projects', 'csv')}
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '8px 12px',
+                      background: active ? '#f8fafc' : 'transparent',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Exporter en CSV
+                  </button>
+                )}
+              </Menu.Item>
+              <div style={{padding: '4px 8px', fontWeight: 500, color: '#64748b', marginTop: '4px'}}>Tâches</div>
+              <Menu.Item>
+                {({ active }) => (
+                  <button
+                    onClick={() => handleExport('tasks', 'pdf')}
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '8px 12px',
+                      background: active ? '#f8fafc' : 'transparent',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Exporter en PDF
+                  </button>
+                )}
+              </Menu.Item>
+              <Menu.Item>
+                {({ active }) => (
+                  <button
+                    onClick={() => handleExport('tasks', 'csv')}
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '8px 12px',
+                      background: active ? '#f8fafc' : 'transparent',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Exporter en CSV
+                  </button>
+                )}
+              </Menu.Item>
+            </Menu.Items>
+          </Menu>
+          <Link to="/projects/new" style={{
+            background: '#2563eb',
+            color: 'white',
+            padding: '8px 16px',
+            borderRadius: '6px',
+            textDecoration: 'none',
+          }}>
+            Nouveau Projet
+          </Link>
+        </div>
+      </div>
+
+      {/* Cartes des statistiques */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '20px',
+        marginBottom: '30px'
+      }}>
+        <StatsCard title="Projets Actifs" value={stats.projects.active} color="#2563eb" />
+        <StatsCard title="Projets Terminés" value={stats.projects.completed} color="#16a34a" />
+        <StatsCard title="Tâches En Cours" value={stats.tasks.inProgress} color="#ca8a04" />
+        <StatsCard title="Tâches Terminées" value={stats.tasks.done} color="#16a34a" />
+      </div>
+
+      {/* Graphiques */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: '20px',
+        marginBottom: '30px'
+      }}>
+        <Card title="Progression des Projets">
+          <div style={{height: '300px'}}>
+            <ProjectProgress data={stats.projects.list} />
+          </div>
+        </Card>
+        <Card title="Distribution des Tâches">
+          <div style={{height: '300px'}}>
+            <TaskDistribution tasks={stats.tasks.list} />
+          </div>
+        </Card>
+      </div>
+
+      {/* Grille principale */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '2fr 1fr',
+        gap: '20px',
+      }}>
+        {/* Colonne gauche */}
+        <div style={{display: 'flex', flexDirection: 'column', gap: '20px'}}>
+          {/* Activité */}
+          <Card title="Activité">
+            <div style={{height: '200px', marginBottom: '20px'}}>
+              <ActivityTimeline activities={stats.activities} />
+            </div>
+          </Card>
+          {/* Projets Récents */}
+          <Card title="Projets Récents" linkTo="/projects">
+            <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+              {stats.projects.list.map(project => (
+                <div key={project._id} style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '10px',
+                  background: '#f8fafc',
+                  borderRadius: '4px'
+                }}>
+                  <div>
+                    <div style={{fontWeight: 'bold'}}>{project.name}</div>
+                    <div style={{fontSize: '0.875rem', color: '#64748b'}}>{project.description}</div>
+                  </div>
+                  <div style={{
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    background: project.isCompleted ? '#dcfce7' : '#dbeafe',
+                    color: project.isCompleted ? '#16a34a' : '#2563eb',
+                    fontSize: '0.875rem'
+                  }}>
+                    {project.isCompleted ? 'Terminé' : 'En cours'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Tâches Récentes */}
+          <Card title="Tâches Récentes" linkTo="/tasks">
+            <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+              {stats.tasks.list.map(task => (
+                <div key={task._id} style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '10px',
+                  background: '#f8fafc',
+                  borderRadius: '4px'
+                }}>
+                  <div>
+                    <div style={{fontWeight: 'bold'}}>{task.title}</div>
+                    <div style={{fontSize: '0.875rem', color: '#64748b'}}>
+                      {task.projectName}
+                    </div>
+                  </div>
+                  <TaskStatus status={task.status} />
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+
+        {/* Colonne droite */}
+        <div style={{display: 'flex', flexDirection: 'column', gap: '20px'}}>
+          {/* Journal d'activité */}
+          <Card title="Activités Récentes">
+            <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+              {stats.activities.map(activity => (
+                <div key={activity._id} style={{
+                  display: 'flex',
+                  gap: '10px',
+                  padding: '10px',
+                  borderLeft: '2px solid #e2e8f0'
+                }}>
+                  <div style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: '#2563eb',
+                    marginTop: '6px',
+                    marginLeft: '-5px'
+                  }} />
+                  <div>
+                    <div style={{fontSize: '0.875rem'}}>{activity.description}</div>
+                    <div style={{fontSize: '0.75rem', color: '#64748b'}}>
+                      {new Date(activity.createdAt).toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Membres de l'équipe */}
+          <Card title="Équipe">
+            <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+              {stats.users && stats.users.map(user => user && (
+                <div key={user._id || 'unknown'} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '10px'
+                }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    background: '#2563eb',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 'bold'
+                  }}>
+                    {user?.name ? user.name[0].toUpperCase() : '?'}
+                  </div>
+                  <div>
+                    <div style={{fontWeight: 'bold'}}>{user?.name || 'Utilisateur'}</div>
+                    <div style={{fontSize: '0.875rem', color: '#64748b'}}>{user?.role || 'Chargement...'}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Composants utilitaires
+function Card({title, children, linkTo}) {
+  return (
+    <div style={{
+      background: 'white',
+      padding: '20px',
+      borderRadius: '8px',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+    }}>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '15px'
+      }}>
+        <h3 style={{margin: 0}}>{title}</h3>
+        {linkTo && (
+          <Link to={linkTo} style={{color: '#2563eb', textDecoration: 'none', fontSize: '0.875rem'}}>
+            Voir tout →
+          </Link>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function StatsCard({title, value, color}) {
+  return (
+    <div style={{
+      background: 'white',
+      padding: '20px',
+      borderRadius: '8px',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+    }}>
+      <div style={{fontSize: '0.875rem', color: '#64748b'}}>{title}</div>
+      <div style={{fontSize: '1.5rem', fontWeight: 'bold', color: color}}>{value}</div>
+    </div>
+  );
+}
+
+function TaskStatus({status}) {
+  const styles = {
+    todo: { bg: '#f1f5f9', color: '#64748b' },
+    in_progress: { bg: '#dbeafe', color: '#2563eb' },
+    in_review: { bg: '#fef3c7', color: '#ca8a04' },
+    done: { bg: '#dcfce7', color: '#16a34a' }
+  };
+  const labels = {
+    todo: 'À faire',
+    in_progress: 'En cours',
+    in_review: 'En revue',
+    done: 'Terminée'
+  };
+  const style = styles[status] || styles.todo;
+  
+  return (
+    <div style={{
+      padding: '4px 8px',
+      borderRadius: '4px',
+      background: style.bg,
+      color: style.color,
+      fontSize: '0.875rem'
+    }}>
+      {labels[status]}
+    </div>
+  );
+}

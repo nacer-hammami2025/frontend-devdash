@@ -1,0 +1,38 @@
+{
+  "name": "devdash-frontend",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@headlessui/react": "^2.2.7",
+    "@heroicons/react": "^2.2.0",
+    "axios": "^1.4.0",
+    "chart.js": "^4.5.0",
+    "date-fns": "^4.1.0",
+    "devdash": "file:..",
+    "dexie": "^4.0.8",
+    "jspdf": "^3.0.2",
+    "jspdf-autotable": "^5.0.2",
+    "prop-types": "^15.8.1",
+    "qrcode.react": "^4.2.0",
+    "react": "^18.2.0",
+    "react-chartjs-2": "^5.3.0",
+    "react-dom": "^18.2.0",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^6.14.2",
+    "react-tsparticles": "^2.12.2",
+    "tsparticles": "^3.9.1",
+    "vite-plugin-pwa": "^1.0.3",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.0",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "vite": "^5.0.0"
+  }
+}

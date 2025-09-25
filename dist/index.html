@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>DevDash</title>
+  <meta name="description" content="Tableau de bord de développement tout-en-un" />
+  <meta name="theme-color" content="#2563eb" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="manifest" href="/manifest.json" />
+  <!-- Inline SVG favicon (reduces requests & avoids CSP cross-origin issues) -->
+  <link rel="icon" type="image/svg+xml"
+    href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%232563eb"/><path fill="white" d="M18 46V18h10c5.523 0 10 4.477 10 10 0 3.73-2.043 7.01-5.07 8.74L46 46h-8.485l-9.2-9.2H26V46h-8Zm8-23.2v8h2c2.21 0 4-1.79 4-4s-1.79-4-4-4h-2Z"/></svg>' />
+  <link rel="apple-touch-icon"
+    href='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAQAAAAAYLlVAAAAr0lEQVR4Ae3XsQmDMBSF4V9htyCYgYwR2JAhmJDEhJ0AERmGxFjiwmRSP6RLlRo9c79r9O6JY/7XXf52fK5WbLEsiwjDENYwzDUNktE0cL9E6Hkq9Ho4kvpP4LkV2l4Kl1uV4Kl1uV4Kl1uV4Kn2vl5VXK4jrquWc7BtWZbFrVu2ZbFrVu2ZYZXiwVxks1mwTyrpNgfJcp+TYPyXKfk2D8lyv5NgfReT6lpHg06kVE0TRNE0TRO3kBNfrZjTMLD00AAAAASUVORK5CYII=' />
+  <!-- Script de redirection pour l'accès via IP -->
+  <script src="/ip-redirect.js"></script>
+  <!-- Bootstrap du thème avant rendu React pour éviter flash -->
+  <script>
+    (function () {
+      try {
+        var key = 'devdash-theme';
+        var saved = localStorage.getItem(key);
+        if (saved && saved !== 'default') {
+          document.documentElement.dataset.theme = saved;
+        }
+        var f = localStorage.getItem('devdash-focus-mode');
+        if (f === 'mono') {
+          document.documentElement.dataset.focus = 'mono';
+        }
+      } catch (e) { /* ignore */ }
+    })();
+  </script>
+  <script type="module" crossorigin src="/assets/index-BGKotorG.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-CxRO9PNE.css">
+</head>
+
+<body>
+  <div id="root"></div>
+  <noscript>
+    <div style="padding: 2rem; text-align: center;">
+      JavaScript est nécessaire pour faire fonctionner cette application.
+    </div>
+  </noscript>
+</body>
+
+</html>

@@ -1,0 +1,75 @@
+/* Project Management UI */
+.pm-container { padding: 20px; }
+.pm-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.pm-header h2 { margin: 0; color: #1e293b; }
+
+.pm-form { margin-bottom: 20px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1) }
+.form-group { margin-bottom: 10px; }
+.input { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; }
+.input:focus { border-color: #2563eb; outline: none; box-shadow: 0 0 0 3px rgba(37, 99, 235, .15); }
+.textarea { min-height: 100px; resize: vertical; }
+
+.pm-columns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.pm-column { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; }
+.pm-column h4 { margin: 4px 0 12px; color: #334155; }
+.pm-list { display: grid; gap: 12px; }
+.pm-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.04) }
+.pm-card-head { display: flex; justify-content: space-between; align-items: baseline; }
+.pm-card-head h5 { margin: 0; }
+.pm-select { font-size: .9rem; padding: 4px 6px; border: 1px solid #e2e8f0; border-radius: 6px; background: #fff }
+.pm-desc { margin: 6px 0 8px; color: #64748b; font-size: .9rem }
+.pm-card-foot { display: flex; justify-content: space-between; align-items: center; }
+.pm-deadline { font-size: .8rem; color: #475569 }
+
+.button { padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: background-color .2s }
+.button-primary { background: #2563eb; color: white; }
+.button-primary:hover { background: #1d4ed8; }
+.button-danger { background: #dc2626; color: white; }
+.button-danger:hover { background: #b91c1c; }
+
+.alert { padding: .75rem; border-radius: .5rem; margin: 1rem 0; font-size: .9rem }
+.alert-error { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca }
+.loading { padding: 20px; color: #64748b }
+
+@media (max-width: 1024px) {
+  .pm-columns { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .pm-columns { grid-template-columns: 1fr; }
+}
+.management-card {
+  height: 100%;
+  min-height: 300px;
+}
+
+.project-management {
+  padding: 24px;
+}
+
+.management-card .ant-card-head {
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.management-card .ant-progress-bg {
+  height: 8px !important;
+}
+
+.management-card .ant-table-thead > tr > th {
+  background-color: #f5f5f5;
+}
+
+.management-card .ant-form-item:last-child {
+  margin-bottom: 0;
+}
+
+.management-card .ant-tag {
+  min-width: 80px;
+  text-align: center;
+}
+
+.management-card .ant-progress {
+  margin-right: 0 !important;
+  margin-bottom: 0 !important;
+}

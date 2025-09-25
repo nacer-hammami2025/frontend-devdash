@@ -1,0 +1,151 @@
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+
+const formatDate = (date) => {
+  if (!date) return '-';
+  return new Date(date).toLocaleDateString('fr-FR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
+export function exportToPDF(data, type = 'projects') {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  
+  // En-tête
+  doc.setFontSize(20);
+  doc.text('DevDash - Rapport', pageWidth/2, 20, { align: 'center' });
+  
+  doc.setFontSize(12);
+  doc.text(`Rapport des ${type}`, pageWidth/2, 30, { align: 'center' });
+  doc.text(`Généré le ${formatDate(new Date())}`, pageWidth/2, 40, { align: 'center' });
+
+  // Configuration des colonnes
+  const columns = type === 'projects' 
+    ? [
+        { header: 'Nom', dataKey: 'name' },
+        { header: 'Description', dataKey: 'description' },
+        { header: 'Statut', dataKey: 'status' },
+        { header: 'Progression', dataKey: 'progress' },
+        { header: 'Date début', dataKey: 'startDate' },
+        { header: 'Date fin', dataKey: 'dueDate' }
+      ]
+    : [
+        { header: 'Titre', dataKey: 'title' },
+        { header: 'Projet', dataKey: 'projectName' },
+        { header: 'Description', dataKey: 'description' },
+        { header: 'Priorité', dataKey: 'priority' },
+        { header: 'Statut', dataKey: 'status' },
+        { header: 'Assigné à', dataKey: 'assignedTo' },
+        { header: 'Date limite', dataKey: 'dueDate' }
+      ];
+
+  // Préparation des données
+  const rows = data.map(item => {
+    if (type === 'projects') {
+      return {
+        ...item,
+        status: item.status ? item.status.replace(/_/g, ' ').toLowerCase() : (item.isCompleted ? 'Terminé' : 'En cours'),
+        progress: `${item.progress || 0}%`,
+        startDate: formatDate(item.startDate),
+        dueDate: formatDate(item.dueDate)
+      };
+    } else {
+      return {
+        ...item,
+        status: item.status.replace(/_/g, ' ').toLowerCase(),
+        assignedTo: item.assignedTo?.name || '-',
+        dueDate: formatDate(item.dueDate)
+      };
+    }
+  });
+
+  // Génération du tableau
+  doc.autoTable({
+    columns,
+    body: rows,
+    startY: 50,
+    headStyles: {
+      fillColor: [37, 99, 235],
+      textColor: [255, 255, 255],
+      halign: 'center'
+    },
+    styles: {
+      fontSize: 9,
+      cellPadding: 3,
+      overflow: 'linebreak',
+      cellWidth: 'wrap'
+    },
+    columnStyles: {
+      description: { cellWidth: 40 },
+      name: { cellWidth: 30 },
+      title: { cellWidth: 30 },
+      status: { cellWidth: 20, halign: 'center' },
+      progress: { cellWidth: 20, halign: 'center' },
+      priority: { cellWidth: 20, halign: 'center' },
+      assignedTo: { cellWidth: 25, halign: 'center' }
+    }
+  });
+
+  // Pied de page
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.text(
+      `Page ${i} sur ${pageCount}`,
+      pageWidth/2,
+      doc.internal.pageSize.getHeight() - 10,
+      { align: 'center' }
+    );
+  }
+
+  // Sauvegarder le PDF
+  doc.save(`devdash_${type}_${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+export function exportToCSV(data, type = 'projects') {
+  // Préparation des en-têtes
+  const headers = type === 'projects'
+    ? ['Nom', 'Description', 'Statut', 'Progression', 'Date début', 'Date fin']
+    : ['Titre', 'Projet', 'Description', 'Priorité', 'Statut', 'Assigné à', 'Date limite'];
+  
+  // Création du contenu CSV
+  let csvContent = headers.join(',') + '\n';
+  
+  // Ajout des données
+  data.forEach(item => {
+    const row = type === 'projects'
+      ? [
+          item.name,
+          item.description || '',
+          item.status ? item.status.replace(/_/g, ' ').toLowerCase() : (item.isCompleted ? 'Terminé' : 'En cours'),
+          `${item.progress || 0}%`,
+          formatDate(item.startDate),
+          formatDate(item.dueDate)
+        ]
+      : [
+          item.title,
+          item.projectName || '',
+          item.description || '',
+          item.priority || '',
+          item.status.replace(/_/g, ' ').toLowerCase(),
+          item.assignedTo?.name || '-',
+          formatDate(item.dueDate)
+        ];
+
+    // Échapper les virgules et les guillemets dans les valeurs
+    csvContent += row.map(value => `"${value.toString().replace(/"/g, '""')}"`).join(',') + '\n';
+  });
+
+  // Création et déclenchement du téléchargement
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `devdash_${type}_${new Date().toISOString().split('T')[0]}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}

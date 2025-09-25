@@ -1,0 +1,196 @@
+/* Page d'intégrations */
+.integrations-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-xl);
+}
+
+.integrations-header {
+  text-align: center;
+  margin-bottom: var(--space-xl);
+}
+
+.integrations-header h1 {
+  color: var(--heading-color);
+  font-size: 2rem;
+  margin-bottom: var(--space-sm);
+}
+
+.integrations-header p {
+  color: var(--text-secondary);
+}
+
+/* Grille d'intégrations */
+.integrations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-lg);
+}
+
+/* Carte d'intégration */
+.integration-card {
+  background: var(--surface-color);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-normal);
+}
+
+.integration-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.integration-card.connected {
+  border-color: var(--primary-color);
+}
+
+.integration-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.integration-icon {
+  font-size: 2rem;
+  color: var(--text-secondary);
+}
+
+.integration-header h2 {
+  color: var(--heading-color);
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+/* Statut de l'intégration */
+.integration-status {
+  margin-bottom: var(--space-lg);
+}
+
+.loading-status,
+.error-status,
+.connected-status,
+.disconnected-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.9rem;
+}
+
+.loading-status {
+  color: var(--text-secondary);
+}
+
+.error-status {
+  color: var(--error-color);
+}
+
+.connected-status {
+  color: var(--success-color);
+}
+
+.disconnected-status {
+  color: var(--text-secondary);
+}
+
+.icon-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Actions d'intégration */
+.integration-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.button {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.button-primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.button-primary:hover:not(:disabled) {
+  background: var(--primary-dark-color);
+}
+
+.button-secondary {
+  background: var(--surface-alt-color);
+  color: var(--text-color);
+}
+
+.button-secondary:hover:not(:disabled) {
+  background: var(--border-color);
+}
+
+.button-icon {
+  padding: var(--space-sm);
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.button-icon:hover {
+  background: var(--surface-alt-color);
+  color: var(--text-color);
+}
+
+/* Intégrations à venir */
+.integration-card.coming-soon {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.coming-soon-label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-top: var(--space-md);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .integrations-page {
+    padding: var(--space-md);
+  }
+
+  .integrations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .integration-card {
+    padding: var(--space-md);
+  }
+}
+
+/* Animations */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Thème sombre */
+[data-theme="dark"] .integration-card.coming-soon {
+  background: var(--surface-alt-color);
+}
+
+/* Styles d'accessibilité */
+.button:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.integration-card:focus-within {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
