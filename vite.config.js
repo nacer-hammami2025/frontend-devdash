@@ -4,7 +4,7 @@ import { defineConfig, loadEnv } from 'vite';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const backendTarget = env.VITE_BACKEND_URL || 'http://localhost:4000';
+  const backendTarget = env.VITE_BACKEND_URL || '${import.meta.env.VITE_BACKEND_URL}';
 
   return {
     plugins: [react()],
